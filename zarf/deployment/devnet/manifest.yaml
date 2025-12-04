@@ -1,3 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cantcost
+  namespace: catalyst-canton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cantcost
+  template:
+    metadata:
+      labels:
+        app: cantcost
+    spec:
+      serviceAccountName: cantcost-sa
+      containers:
+        - name: cantcost
+          image: {image}
+          imagePullPolicy: IfNotPresent
+          env:
+            # Deployment whose pods' logs you want to read
+            - name: TARGET_DEPLOYMENT
+              value: "deployment-1"
+            # Used by the app to default to its own namespace
+            - name: TARGET_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -32,33 +62,3 @@ roleRef:
   kind: Role
   name: cantcost-role
   apiGroup: rbac.authorization.k8s.io
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cantcost
-  namespace: catalyst-canton
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: cantcost
-  template:
-    metadata:
-      labels:
-        app: cantcost
-    spec:
-      serviceAccountName: cantcost-sa
-      containers:
-        - name: cantcost
-          image: image
-          imagePullPolicy: IfNotPresent
-          env:
-            # Deployment whose pods' logs you want to read
-            - name: TARGET_DEPLOYMENT
-              value: "deployment-1"
-            # Used by the app to default to its own namespace
-            - name: TARGET_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
