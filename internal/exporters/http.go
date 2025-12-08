@@ -50,6 +50,7 @@ func (h *HTTP) Export(ctx context.Context, line *parser.Line) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Add("Authorization", h.AuthorizationHeader)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
