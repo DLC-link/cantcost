@@ -15,6 +15,8 @@ const (
 	httpExporterAuthHeader = "HTTP_EXPORTER_AUTH_HEADER"
 	httpExporterBatchSize  = "HTTP_EXPORTER_BATCH_SIZE"
 
+	incluseMessage = "INCLUDE_MESSAGE"
+
 	logLevel = "LOG_LEVEL"
 )
 
@@ -87,6 +89,16 @@ func GetHTTPExporterBatchSize() int {
 		}
 	}
 	return 10
+}
+
+func GetIncludeMessage() bool {
+	if v := os.Getenv(incluseMessage); v != "" {
+		boolV, err := strconv.ParseBool(v)
+		if err == nil {
+			return boolV
+		}
+	}
+	return false
 }
 
 func Print() {

@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -81,5 +83,7 @@ func TestProcessLine(t *testing.T) {
 		if l.CostDetails.CostMultiplier != line.expected.CostDetails.CostMultiplier {
 			t.Errorf("CostMultiplier mismatch: got %d, want %d", l.CostDetails.CostMultiplier, line.expected.CostDetails.CostMultiplier)
 		}
+		d, _ := json.Marshal(l.ToMessageLine())
+		fmt.Println(string(d))
 	}
 }

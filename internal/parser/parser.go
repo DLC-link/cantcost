@@ -7,29 +7,31 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/DLC-link/cantcost/internal/env"
 )
 
 // Recipient represents either a MemberRecipient or MediatorGroupRecipient
 type Recipient struct {
-	Type    string // "MemberRecipient" or "MediatorGroupRecipient"
-	Member  string // For MemberRecipient (e.g., "PAR::iBTC-validator-1::1220fa8543db...")
-	GroupID int    // For MediatorGroupRecipient
+	Type    string `json:"type"`
+	Member  string `json:"member"`
+	GroupID int    `json:"group_id"`
 }
 
 // EnvelopeCostDetails represents the cost details for an envelope
 type EnvelopeCostDetails struct {
-	WriteCost  int
-	ReadCost   int
-	FinalCost  int
-	Recipients []Recipient
+	WriteCost  int         `json:"write_cost"`
+	ReadCost   int         `json:"read_cost"`
+	FinalCost  int         `json:"final_cost"`
+	Recipients []Recipient `json:"recipients"`
 }
 
 // EventCostDetails represents the parsed cost details from the log message
 type EventCostDetails struct {
-	EventCost          int
-	CostMultiplier     int
-	GroupToMembersSize map[int]int // MediatorGroupRecipient group -> member count
-	EnvelopesCost      []EnvelopeCostDetails
+	EventCost          int                   `json:"event_cost"`
+	CostMultiplier     int                   `json:"cost_multiplier"`
+	GroupToMembersSize map[int]int           `json:"group_to_members_size"`
+	EnvelopesCost      []EnvelopeCostDetails `json:"envelopes_cost"`
 }
 
 type Line struct {
@@ -49,6 +51,25 @@ type Line struct {
 
 	// Parsed from Message
 	CostDetails *EventCostDetails `json:"-"`
+}
+
+type MessageLine struct {
+	// DockerTimestamp is the timestamp from the Docker log prefix
+	DockerTimestamp time.Time `json:"-"`
+
+	// Fields from the JSON payload
+	Timestamp    time.Time `json:"@timestamp"`
+	Message      string    `json:"message"`
+	LoggerName   string    `json:"logger_name"`
+	ThreadName   string    `json:"thread_name"`
+	Level        string    `json:"level"`
+	SpanID       string    `json:"span_id"`
+	SpanParentID string    `json:"span_parent_id"`
+	TraceID      string    `json:"trace_id"`
+	SpanName     string    `json:"span_name"`
+
+	// Parsed from Message
+	CostDetails *EventCostDetails `json:"cost_details"`
 }
 
 func ProcessLine(line string) (Line, error) {
@@ -85,6 +106,25 @@ func ProcessLine(line string) (Line, error) {
 	}
 
 	return l, nil
+}
+
+func (l *Line) ToMessageLine() *MessageLine {
+	message := &MessageLine{
+		DockerTimestamp: l.DockerTimestamp,
+		Timestamp:       l.Timestamp,
+		LoggerName:      l.LoggerName,
+		ThreadName:      l.ThreadName,
+		Level:           l.Level,
+		SpanID:          l.SpanID,
+		SpanParentID:    l.SpanParentID,
+		TraceID:         l.TraceID,
+		SpanName:        l.SpanName,
+		CostDetails:     l.CostDetails,
+	}
+	if env.GetIncludeMessage() {
+		message.Message = l.Message
+	}
+	return message
 }
 
 func parseEventCostDetails(message string) (*EventCostDetails, error) {
