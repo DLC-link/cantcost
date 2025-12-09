@@ -16,7 +16,7 @@ spec:
       serviceAccountName: cantcost-sa
       containers:
         - name: cantcost
-          image: {image}
+          image: ghcr.io/dlc-link/cantcost:version
           imagePullPolicy: IfNotPresent
           env:
             # Deployment whose pods' logs you want to read
@@ -27,6 +27,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: EXPORTER_TYPE
+              value: "http"
+            - name: HTTP_EXPORTER_URL
+              value: "https://targetdomain/anything"
+            - name: HTTP_EXPORTER_AUTH_HEADER
+              value: "{secret}"
 ---
 apiVersion: v1
 kind: ServiceAccount

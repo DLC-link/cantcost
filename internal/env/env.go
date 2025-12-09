@@ -3,12 +3,19 @@ package env
 import (
 	"log/slog"
 	"os"
+	"strconv"
 )
 
 const (
-	targetDeployment = "TARGET_DEPLOYMENT"
-	targetContainer  = "TARGET_CONTAINER"
-	targetNamespace  = "TARGET_NAMESPACE"
+	targetDeployment       = "TARGET_DEPLOYMENT"
+	targetContainer        = "TARGET_CONTAINER"
+	targetNamespace        = "TARGET_NAMESPACE"
+	exporterType           = "EXPORTER_TYPE"
+	httpExporterURL        = "HTTP_EXPORTER_URL"
+	httpExporterAuthHeader = "HTTP_EXPORTER_AUTH_HEADER"
+	httpExporterBatchSize  = "HTTP_EXPORTER_BATCH_SIZE"
+
+	incluseMessage = "INCLUDE_MESSAGE"
 
 	logLevel = "LOG_LEVEL"
 )
@@ -51,6 +58,47 @@ func GetTargetNamespace() string {
 		return v
 	}
 	return "default"
+}
+
+func GetExporterType() string {
+	if v := os.Getenv(exporterType); v != "" {
+		return v
+	}
+	return "http"
+}
+
+func GetHTTPExporterURL() string {
+	if v := os.Getenv(httpExporterURL); v != "" {
+		return v
+	}
+	return ""
+}
+
+func GetHTTPExporterAuthHeader() string {
+	if v := os.Getenv(httpExporterAuthHeader); v != "" {
+		return v
+	}
+	return ""
+}
+
+func GetHTTPExporterBatchSize() int {
+	if v := os.Getenv(httpExporterBatchSize); v != "" {
+		strconvV, err := strconv.Atoi(v)
+		if err == nil {
+			return strconvV
+		}
+	}
+	return 10
+}
+
+func GetIncludeMessage() bool {
+	if v := os.Getenv(incluseMessage); v != "" {
+		boolV, err := strconv.ParseBool(v)
+		if err == nil {
+			return boolV
+		}
+	}
+	return false
 }
 
 func Print() {
