@@ -29,19 +29,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Compute tags based on whether this is a branch push or tag push
       - name: Compute image tags
         id: vars
         run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY}"
+          # Lowercase the repo for GHCR
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             TAG_NAME="${GITHUB_REF_NAME}"   # e.g. v1.2.3
             echo "tags=${IMAGE}:${TAG_NAME},${IMAGE}:latest" >> $GITHUB_OUTPUT
           else
-            BRANCH="${GITHUB_REF_NAME}"     # e.g. feature/foo
-            SAFE_BRANCH=$(echo "$BRANCH" | tr '/' '-')  # feature-foo
             SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
-            echo "tags=${IMAGE}:branch-${SAFE_BRANCH},${IMAGE}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "tags=${IMAGE}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push
