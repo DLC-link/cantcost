@@ -16,7 +16,7 @@ spec:
       serviceAccountName: cantcost-sa
       containers:
         - name: cantcost
-          image: {image}
+          image: ghcr.io/dlc-link/cantcost:version
           imagePullPolicy: IfNotPresent
           env:
             # Deployment whose pods' logs you want to read
