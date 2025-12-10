@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"strings"
 
 	"github.com/DLC-link/cantcost/internal/env"
 	slogcontext "github.com/PumpkinSeed/slog-context"
@@ -34,22 +35,28 @@ func Stream(ctx context.Context, lineHandler func(context.Context, string) error
 	}
 	defer stream.Close()
 
-	scanner := bufio.NewScanner(stream)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if err := lineHandler(ctx, line); err != nil {
-			slog.ErrorContext(ctx, "Error handling log line", slog.Any("error", err))
-			continue
+	r := bufio.NewReader(stream)
+
+	for {
+		line, err := r.ReadString('\n') // keeps reading until newline
+		if len(line) > 0 {
+			// trim trailing newline(s) to match Scanner behavior
+			line = strings.TrimRight(line, "\r\n")
+			if err2 := lineHandler(ctx, line); err2 != nil {
+				slog.ErrorContext(ctx, "Error handling log line", slog.Any("error", err2))
+			}
+		}
+
+		if err != nil {
+			if err == io.EOF {
+				// if your log stream is truly "follow", EOF usually means stream ended
+				slog.InfoContext(ctx, "Log stream ended")
+				return nil
+			}
+			slog.ErrorContext(ctx, "Error reading log stream", slog.Any("error", err))
+			return err
 		}
 	}
-
-	if err := scanner.Err(); err != nil && err != io.EOF {
-		slog.ErrorContext(ctx, "Error reading log stream", slog.Any("error", err))
-		return err
-	}
-
-	slog.InfoContext(ctx, "Log stream ended")
-	return nil
 }
 
 func getKubernetesClient(ctx context.Context) (*kubernetes.Clientset, error) {
