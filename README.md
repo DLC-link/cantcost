@@ -103,7 +103,7 @@ The message is the raw log line from the Canton participant node. You can get it
 
 #### Deploy it
 
-You should change the values in the zarf/deployment/devnet/manifest.yaml file. Note: this is just an example, because the Kubernetes service account needs proper RBAC permissions to read the pod logs.
+You can find pre-built images on [our container registry](https://gallery.ecr.aws/dlc-link/cantcost). You should change the values in the zarf/deployment/devnet/manifest.yaml file. Note: this is just an example, because the Kubernetes service account needs proper RBAC permissions to read the pod logs.
 
 - Change the image location in the `spec.containers.image` field. This can be a predefined one from us or your own build.
 - Change the namespace everywhere for your desired namespace.
